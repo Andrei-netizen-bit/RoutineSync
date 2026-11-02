@@ -24,6 +24,11 @@
             background: linear-gradient(135deg, #eef2ff, #f8fafc, #e0e7ff);
         }
 
+        /* FIX: Hide login screen while checking the active session */
+        #authView.hidden {
+            display: none !important;
+        }
+
         #authView .auth-card {
             width: 100%;
             max-width: 420px;
@@ -170,7 +175,7 @@
 <body class="min-h-screen bg-slate-50 text-slate-800">
 
     <!-- LOGIN AND REGISTER -->
-    <section id="authView">
+    <section id="authView" class="hidden">
         <div class="auth-card">
 
             <div class="text-center">
