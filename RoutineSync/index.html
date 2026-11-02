@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoutineSync - Daily Routine & Item Checklist</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'DM Sans', Arial, sans-serif;
+            background: #f8fafc;
+        }
+
+        #authView {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            background: linear-gradient(135deg, #eef2ff, #f8fafc, #e0e7ff);
+        }
+
+        #authView .auth-card {
+            width: 100%;
+            max-width: 420px;
+            padding: 36px;
+            background: white;
+            border-radius: 22px;
+            box-shadow: 0 15px 45px rgba(15,23,42,.10);
+        }
+
+        .auth-logo {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 12px;
+            display: grid;
+            place-items: center;
+            border-radius: 18px;
+            background: #4f46e5;
+            color: white;
+            font-size: 32px;
+        }
+
+        .auth-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: 25px 0;
+        }
+
+        .auth-tabs button {
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .auth-tabs .primary-btn {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .auth-tabs .secondary-btn {
+            background: #eef2ff;
+            color: #4338ca;
+        }
+
+        .auth-form h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .auth-form > p {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 22px;
+            text-align: center;
+        }
+
+        .auth-form .field-label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .auth-form .field {
+            width: 100%;
+            display: block;
+            padding: 13px;
+            margin-bottom: 17px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            background: white;
+            outline: none;
+        }
+
+        .auth-form .field:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px #e0e7ff;
+        }
+
+        .auth-form .primary-btn {
+            width: 100%;
+            padding: 14px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .auth-form .primary-btn:hover {
+            background: #4338ca;
+        }
+
+        #authMessage {
+            font-size: 13px;
+            text-align: center;
+            margin-top: 18px;
+        }
+
+        /* TEMPLATE MANAGEMENT FORM */
+        #templateDialog {
+            width: min(650px, calc(100% - 30px));
+            max-width: 650px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        #templateDialog::backdrop {
+            background: rgba(15, 23, 42, .55);
+        }
+
+        .template-item-editor {
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+        .template-item-editor .field {
+            margin-bottom: 10px;
+        }
+
+        .template-item-editor .remove-template-item {
+            color: #dc2626;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        @media(max-width: 480px) {
+            #authView .auth-card {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-slate-50 text-slate-800">
+
+    <!-- LOGIN AND REGISTER -->
+    <section id="authView">
+        <div class="auth-card">
+
+            <div class="text-center">
+                <div class="auth-logo">↻</div>
+                <h1 class="text-3xl font-bold text-slate-800">RoutineSync</h1>
+                <p class="text-sm text-slate-500 mt-2">Make every day count.</p>
+            </div>
+
+            <div class="auth-tabs">
+                <button type="button" id="showLogin" class="primary-btn">Login</button>
+                <button type="button" id="showRegister" class="secondary-btn">Register</button>
+            </div>
+
+            <form id="loginForm" class="auth-form">
+                <h2>Welcome back!</h2>
+                <p>Login to access your RoutineSync account.</p>
+
+                <div>
+                    <label class="field-label" for="loginEmail">Email address</label>
+                    <input id="loginEmail" class="field" type="email" required placeholder="Enter your email">
+                </div>
+
+                <div>
+                    <label class="field-label" for="loginPassword">Password</label>
+                    <input id="loginPassword" class="field" type="password" required placeholder="Enter your password">
+                </div>
+
+                <button type="submit" class="primary-btn">Login to RoutineSync</button>
+            </form>
+
+            <form id="registerForm" class="auth-form hidden">
+                <h2>Create an account</h2>
+                <p>Register to start managing your routines.</p>
+
+                <div>
+                    <label class="field-label" for="registerName">Full name</label>
+                    <input id="registerName" class="field" type="text" maxlength="100" required placeholder="Enter your full name">
+                </div>
+
+                <div>
+                    <label class="field-label" for="registerEmail">Email address</label>
+                    <input id="registerEmail" class="field" type="email" required placeholder="Enter your email">
+                </div>
+
+                <div>
+                    <label class="field-label" for="registerPassword">Password</label>
+                    <input id="registerPassword" class="field" type="password" minlength="8" required placeholder="At least 8 characters">
+                </div>
+
+                <button type="submit" class="primary-btn">Create Account</button>
+            </form>
+
+            <p id="authMessage" role="status"></p>
+        </div>
+    </section>
+
+    <!-- MAIN APPLICATION -->
+    <div id="appShell" class="hidden min-h-screen lg:grid lg:grid-cols-[250px_1fr]">
+
+        <aside class="bg-slate-950 text-white p-5 lg:min-h-screen">
+
+            <a href="#" class="flex items-center gap-3 mb-8">
+                <span class="grid place-items-center rounded-xl bg-indigo-500 w-11 h-11 text-xl">↻</span>
+                <span>
+                    <span class="block font-bold text-lg">RoutineSync</span>
+                    <span class="text-xs text-slate-400">Make every day count</span>
+                </span>
+            </a>
+
+            <!-- END USER NAVIGATION -->
+            <nav id="userNavigation" class="space-y-2" aria-label="User navigation">
+                <button class="nav-link active" data-view="dashboard" type="button">▦ <span>Dashboard</span></button>
+                <button class="nav-link" data-view="routines" type="button">☑ <span>My routines</span></button>
+                <button class="nav-link" data-view="templates" type="button">▤ <span>Templates</span></button>
+                <button class="nav-link" data-view="analytics" type="button">▥ <span>Analytics</span></button>
+                <button class="nav-link" data-view="archived" type="button">🗄 <span>Archived routines</span></button>
+            </nav>
+
+            <!-- ADMIN NAVIGATION -->
+            <nav id="adminNavigation" class="space-y-2 hidden" aria-label="Admin navigation">
+                <button class="nav-link active" data-view="admin" type="button">
+                    ▦ <span>Admin Dashboard</span>
+                </button>
+
+                <button class="nav-link" data-view="admin-templates" type="button">
+                    ▤ <span>Template Management</span>
+                </button>
+            </nav>
+
+            <!-- PROFILE NAVIGATION -->
+            <button class="nav-link w-full mt-2" id="profileNavButton" type="button">
+                👤 <span>Profile Settings</span>
+            </button>
+
+            <div class="mt-10 rounded-2xl bg-slate-900 p-4">
+                <p class="text-sm font-semibold">Small steps add up.</p>
+                <p class="mt-1 text-xs leading-5 text-slate-400">
+                    Check off your essentials and build a routine that works for you.
+                </p>
+            </div>
+
+            <div class="mt-8 border-t border-slate-800 pt-5">
+                <p class="text-xs text-slate-400">Logged in as</p>
+                <p id="loggedUser" class="font-semibold mt-1 break-words">User</p>
+                <button id="logoutButton" class="secondary-btn w-full mt-4">Logout</button>
+            </div>
+
+            <p class="mt-8 text-xs text-slate-500">RoutineSync · Student project</p>
+        </aside>
+
+        <main class="p-4 sm:p-7 lg:p-10 max-w-7xl w-full mx-auto">
+
+            <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
+                <div>
+                    <p id="todayLabel" class="text-sm text-slate-500"></p>
+                    <h1 id="pageTitle" class="text-3xl font-bold tracking-tight mt-1">Good day 👋</h1>
+                    <p id="pageSubtitle" class="text-slate-500 mt-2">Your routines, one step at a time.</p>
+                </div>
+                <button id="addItemTop" class="primary-btn">＋ Add checklist item</button>
+            </header>
+
+            <!-- ADMIN DASHBOARD -->
+            <section id="adminView" class="view hidden space-y-6">
+
+                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+
+                    <article class="stat-card">
+                        <p class="stat-label">Registered Users</p>
+                        <strong id="adminTotalUsers" class="stat-number block mt-3">0</strong>
+                        <p class="text-sm text-slate-500 mt-2">All user accounts</p>
+                    </article>
+
+                    <article class="stat-card">
+                        <p class="stat-label">Active Routines</p>
+                        <strong id="adminActiveRoutines" class="stat-number block mt-3">0</strong>
+                        <p class="text-sm text-slate-500 mt-2">Current checklist items</p>
+                    </article>
+
+                    <article class="stat-card">
+                        <p class="stat-label">Archived Routines</p>
+                        <strong id="adminArchivedRoutines" class="stat-number block mt-3">0</strong>
+                        <p class="text-sm text-slate-500 mt-2">Archived checklist items</p>
+                    </article>
+
+                    <article class="stat-card">
+                        <p class="stat-label">Completed Items</p>
+                        <strong id="adminCompletedItems" class="stat-number block mt-3">0</strong>
+                        <p class="text-sm text-slate-500 mt-2">Recorded completions</p>
+                    </article>
+
+                </div>
+
+                <div class="panel">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div>
+                            <h2 class="section-title">User Accounts</h2>
+                            <p class="text-slate-500 text-sm mt-1">
+                                View registered accounts, roles, and account status.
+                            </p>
+                        </div>
+
+                        <button id="refreshAdminDashboard" class="secondary-btn" type="button">
+                            ↻ Refresh
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto mt-5">
+                        <table class="w-full text-sm text-left">
+                            <thead>
+                                <tr class="border-b border-slate-200 text-slate-500">
+                                    <th class="py-3 px-3">ID</th>
+                                    <th class="py-3 px-3">Name</th>
+                                    <th class="py-3 px-3">Email</th>
+                                    <th class="py-3 px-3">Role</th>
+                                    <th class="py-3 px-3">Status</th>
+                                    <th class="py-3 px-3">Registered</th>
+                                    <th class="py-3 px-3">Actions</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="adminUsersTable">
+                                <tr>
+                                    <td colspan="7" class="py-5 text-center text-slate-400">
+                                        Loading user accounts...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p id="adminMessage" class="text-sm mt-4" role="status"></p>
+                </div>
+
+            </section>
+
+            <!-- ADMIN TEMPLATE MANAGEMENT -->
+            <section id="adminTemplatesView" class="view hidden space-y-6">
+
+                <div class="panel">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div>
+                            <h2 class="section-title">Routine Templates</h2>
+                            <p class="text-slate-500 text-sm mt-1">
+                                Create, edit, and manage templates available to End Users.
+                            </p>
+                        </div>
+
+                        <button id="addTemplateButton" class="primary-btn" type="button">
+                            ＋ Add New Template
+                        </button>
+                    </div>
+
+                    <div id="adminTemplateGrid" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3 mt-6">
+                        <p class="text-sm text-slate-400">Loading templates...</p>
+                    </div>
+
+                    <p id="adminTemplateMessage" class="text-sm mt-4" role="status"></p>
+                </div>
+
+            </section>
+
+            <!-- USER DASHBOARD -->
+            <section id="dashboardView" class="view space-y-6">
+                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+
+                    <article class="stat-card">
+                        <p class="stat-label">Today's progress</p>
+                        <div class="flex items-end justify-between mt-3">
+                            <strong id="progressPercent" class="stat-number">0%</strong>
+                            <span id="doneCount" class="text-sm text-slate-500">0 of 0 done</span>
+                        </div>
+                        <div class="progress-track mt-4">
+                            <div id="progressBar" class="progress-fill" style="width:0%"></div>
+                        </div>
+                    </article>
+
+                    <article class="stat-card">
+                        <p class="stat-label">Items completed</p>
+                        <strong id="completedStat" class="stat-number block mt-3">0</strong>
+                        <p class="text-sm text-slate-500 mt-2">Across today's routines</p>
+                    </article>
+
+                    <article class="stat-card">
+                        <p class="stat-label">Routines ready</p>
+                        <strong id="routineStat" class="stat-number block mt-3">3</strong>
+                        <p class="text-sm text-slate-500 mt-2">Morning, midday, evening</p>
+                    </article>
+
+                    <article class="stat-card">
+                        <p class="stat-label">Current streak</p>
+                        <strong id="streakStat" class="stat-number block mt-3">0 days</strong>
+                        <p class="text-sm text-slate-500 mt-2">Keep showing up</p>
+                    </article>
+                </div>
+
+                <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+                    <div>
+                        <h2 class="section-title">Your daily checklist</h2>
+                        <p class="text-slate-500 text-sm mt-1">Select an item when it is complete.</p>
+                    </div>
+                    <span id="dateBadge" class="date-badge"></span>
+                </div>
+
+                <div id="phaseLists" class="grid gap-5 xl:grid-cols-3"></div>
+            </section>
+
+            <!-- ROUTINES -->
+            <section id="routinesView" class="view hidden space-y-6">
+                <div class="panel">
+                    <h2 class="section-title">Manage your routines</h2>
+                    <p class="text-slate-500 text-sm mt-1">Add, edit, complete, or archive checklist items.</p>
+                    <div id="allRoutines" class="mt-5 space-y-6"></div>
+                </div>
+            </section>
+
+            <!-- END USER TEMPLATES -->
+            <section id="templatesView" class="view hidden space-y-6">
+                <div>
+                    <h2 class="section-title">Routine templates</h2>
+                    <p class="text-slate-500 text-sm mt-1">
+                        Start quickly with a preset, then customize it.
+                    </p>
+                </div>
+                <div id="templateGrid" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3"></div>
+            </section>
+
+            <!-- ANALYTICS -->
+            <section id="analyticsView" class="view hidden space-y-6">
+                <div class="grid gap-4 sm:grid-cols-3">
+                    <article class="stat-card">
+                        <p class="stat-label">Overall completion</p>
+                        <strong id="overallRate" class="stat-number block mt-3">0%</strong>
+                    </article>
+
+                    <article class="stat-card">
+                        <p class="stat-label">Best phase</p>
+                        <strong id="bestPhase" class="text-xl font-bold block mt-3">—</strong>
+                    </article>
+
+                    <article class="stat-card">
+                        <p class="stat-label">Tracked days</p>
+                        <strong id="trackedDays" class="stat-number block mt-3">1</strong>
+                    </article>
+                </div>
+
+                <div class="panel">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <h2 class="section-title">Last 7 days</h2>
+                            <p class="text-slate-500 text-sm mt-1">Daily checklist completion rate</p>
+                        </div>
+                        <span class="text-xs text-slate-400">Account data</span>
+                    </div>
+                    <div id="weeklyChart" class="mt-7 grid grid-cols-7 gap-2 sm:gap-4 items-end h-52"></div>
+                </div>
+
+                <div class="panel">
+                    <h2 class="section-title">Phase breakdown</h2>
+                    <div id="phaseAnalytics" class="mt-5 space-y-5"></div>
+                </div>
+            </section>
+
+            <!-- ARCHIVED ROUTINES -->
+            <section id="archivedView" class="view hidden space-y-6">
+                <div class="panel">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div>
+                            <h2 class="section-title">Archived routines</h2>
+                            <p class="text-slate-500 text-sm mt-1">
+                                Restore routines to use them in your active checklist again.
+                            </p>
+                        </div>
+                        <button id="refreshArchived" class="secondary-btn">↻ Refresh</button>
+                    </div>
+
+                    <div id="archivedRoutines" class="mt-5 space-y-3">
+                        <p class="text-sm text-slate-400">Loading archived routines...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PROFILE SETTINGS -->
+            <section id="profileView" class="view hidden space-y-6">
+                <div class="panel">
+                    <div class="mb-6">
+                        <h2 class="section-title">Your Profile</h2>
+                        <p class="text-slate-500 text-sm mt-1">
+                            Update your account details and password.
+                        </p>
+                    </div>
+
+                    <form id="profileForm" class="space-y-5 max-w-2xl">
+
+                        <div>
+                            <label class="field-label" for="profileName">Display Name</label>
+                            <input type="text" id="profileName" class="field" maxlength="100" required placeholder="Enter your name">
+                        </div>
+
+                        <div>
+                            <label class="field-label" for="profileEmail">Email Address</label>
+                            <input type="email" id="profileEmail" class="field" required placeholder="Enter your email">
+                        </div>
+
+                        <div class="border-t border-slate-200 pt-5">
+                            <h3 class="font-bold text-slate-800">Change Password</h3>
+                            <p class="text-sm text-slate-500 mt-1">
+                                Leave the new password fields blank if you do not want to change your password.
+                            </p>
+                        </div>
+
+                        <div>
+                            <label class="field-label" for="currentPassword">Current Password</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="currentPassword" class="field" required autocomplete="current-password" placeholder="Enter your current password">
+                                <button type="button" class="toggle-password" data-target="currentPassword" aria-label="Show current password" aria-pressed="false">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="field-label" for="newPassword">New Password</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="newPassword" class="field" minlength="8" autocomplete="new-password" placeholder="At least 8 characters">
+                                <button type="button" class="toggle-password" data-target="newPassword" aria-label="Show new password" aria-pressed="false">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="field-label" for="confirmPassword">Confirm New Password</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="confirmPassword" class="field" minlength="8" autocomplete="new-password" placeholder="Re-enter your new password">
+                                <button type="button" class="toggle-password" data-target="confirmPassword" aria-label="Show confirm password" aria-pressed="false">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                                        <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-3 pt-2">
+                            <button type="submit" id="saveProfileButton" class="primary-btn">
+                                Save Changes
+                            </button>
+                        </div>
+
+                        <p id="profileMessage" role="status" aria-live="polite"></p>
+                    </form>
+                </div>
+            </section>
+
+            <footer class="mt-10 text-center text-xs text-slate-400">
+                RoutineSync · Your checklist is saved in your account.
+            </footer>
+        </main>
+    </div>
+
+    <!-- ADD / EDIT ROUTINE DIALOG -->
+    <dialog id="itemDialog" class="dialog">
+        <form id="itemForm" class="space-y-4">
+            <div class="flex justify-between items-center">
+                <h2 id="dialogTitle" class="text-xl font-bold">Add checklist item</h2>
+                <button type="button" id="closeDialog" class="close-btn" aria-label="Close">✕</button>
+            </div>
+
+            <input type="hidden" id="itemId">
+
+            <label class="field-label" for="itemName">Item name</label>
+            <input id="itemName" class="field" maxlength="90" required placeholder="e.g. Bring water bottle">
+
+            <label class="field-label" for="itemPhase">Routine phase</label>
+            <select id="itemPhase" class="field">
+                <option value="morning">Morning Launchpad</option>
+                <option value="midday">Midday Focus</option>
+                <option value="evening">Evening Closure</option>
+            </select>
+
+            <label class="field-label" for="itemNote">Note (optional)</label>
+            <input id="itemNote" class="field" maxlength="160" placeholder="A little reminder">
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" id="cancelDialog" class="secondary-btn">Cancel</button>
+                <button class="primary-btn" type="submit">Save item</button>
+            </div>
+        </form>
+    </dialog>
+
+    <!-- ADMIN TEMPLATE FORM DIALOG -->
+    <dialog id="templateDialog" class="dialog">
+        <form id="templateForm" class="space-y-4">
+
+            <div class="flex justify-between items-center gap-3">
+                <h2 id="templateDialogTitle" class="text-xl font-bold">
+                    Add New Template
+                </h2>
+
+                <button
+                    type="button"
+                    id="closeTemplateDialog"
+                    class="close-btn"
+                    aria-label="Close">
+                    ✕
+                </button>
+            </div>
+
+            <input type="hidden" id="originalTemplateTitle">
+            <input type="hidden" id="originalTemplateDescription">
+
+            <div>
+                <label class="field-label" for="templateTitle">Template Name</label>
+                <input
+                    id="templateTitle"
+                    class="field"
+                    maxlength="150"
+                    required
+                    placeholder="e.g. College Student Routine">
+            </div>
+
+            <div>
+                <label class="field-label" for="templateDescription">Description</label>
+                <textarea
+                    id="templateDescription"
+                    class="field"
+                    maxlength="500"
+                    required
+                    rows="3"
+                    placeholder="Describe this routine template"></textarea>
+            </div>
+
+            <div class="border-t border-slate-200 pt-4">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <h3 class="font-bold text-slate-800">Checklist Items</h3>
+                        <p class="text-xs text-slate-500 mt-1">
+                            Add the tasks included in this template.
+                        </p>
+                    </div>
+
+                    <button
+                        type="button"
+                        id="addTemplateItem"
+                        class="secondary-btn">
+                        ＋ Add Item
+                    </button>
+                </div>
+
+                <div id="templateItemsContainer" class="space-y-4 mt-4"></div>
+            </div>
+
+            <p id="templateFormMessage" class="text-sm" role="status"></p>
+
+            <div class="flex justify-end gap-2 pt-3">
+                <button
+                    type="button"
+                    id="cancelTemplateDialog"
+                    class="secondary-btn">
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    id="saveTemplateButton"
+                    class="primary-btn">
+                    Save Template
+                </button>
+            </div>
+
+        </form>
+    </dialog>
+
+    <div id="toast" role="status" class="toast" aria-live="polite"></div>
+
+    <!-- JAVASCRIPT FILES -->
+    <script src="assets/app.js"></script>
+    <script src="assets/admin.js"></script>
+    <script src="assets/profile.js"></script>
+
+</body>
+</html>
